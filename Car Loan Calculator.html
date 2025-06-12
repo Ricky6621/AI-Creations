@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Car Loan Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.378.0/dist/umd/lucide.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .icon-placeholder {
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            stroke-width: 2;
+            vertical-align: -0.15em; /* Align better with text */
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .input-label {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* semibold */
+            color: #374151; /* gray-700 */
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .input-field:focus {
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* blue-500 with opacity */
+            outline: none;
+        }
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #d1d5db; /* gray-300 */
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .2s;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2563eb; /* blue-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #2563eb; /* blue-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+        }
+        .output-value {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700;
+            color: #1d4ed8; /* blue-700 */
+        }
+        .info-value {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700;
+            color: #1f2937; /* gray-800 */
+        }
+        .info-label {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* gray-500 */
+            margin-top: 0.25rem;
+        }
+        .table-header {
+            background-color: #e5e7eb; /* gray-200 */
+            font-weight: 600;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s, color 0.3s;
+            color: #6b7280; /* gray-500 */
+        }
+        .tab-button.active {
+            border-color: #2563eb; /* blue-600 */
+            color: #2563eb; /* blue-600 */
+            font-weight: 600;
+        }
+         /* Custom modal styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-backdrop.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .modal-body {
+            color: #4b5563;
+            margin-bottom: 1.5rem;
+        }
+        .modal-button {
+            background-color: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .modal-button:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-10">
+            <div class="flex justify-center items-center mb-2">
+                <i data-lucide="calculator" class="w-10 h-10 text-blue-700 mr-2"></i>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Interactive Car Loan Calculator</h1>
+            </div>
+            <p class="text-gray-600">Adjust the values below to estimate your car loan payments.</p>
+        </header>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+            <div class="card">
+                <label for="vehiclePrice" class="input-label flex items-center">
+                    <i data-lucide="car" class="icon-placeholder mr-2 text-blue-600"></i>Vehicle Price ($)
+                </label>
+                <input type="number" id="vehiclePrice" class="input-field mb-2" value="25000" min="1000" step="500">
+                <input type="range" id="vehiclePriceSlider" class="slider" value="25000" min="1000" max="100000" step="500">
+                <div class="text-sm text-gray-500 mt-1 text-center" id="vehiclePriceDisplay">$25,000</div>
+            </div>
+
+            <div class="card">
+                <label for="downPayment" class="input-label flex items-center">
+                    <i data-lucide="piggy-bank" class="icon-placeholder mr-2 text-green-600"></i>Down Payment ($)
+                </label>
+                <input type="number" id="downPayment" class="input-field mb-2" value="5000" min="0" step="100">
+                <input type="range" id="downPaymentSlider" class="slider" value="5000" min="0" max="50000" step="100">
+                 <div class="text-sm text-gray-500 mt-1 text-center" id="downPaymentDisplay">$5,000</div>
+            </div>
+
+            <div class="card">
+                <label for="interestRate" class="input-label flex items-center">
+                    <i data-lucide="percent" class="icon-placeholder mr-2 text-red-600"></i>Annual Interest Rate (%)
+                </label>
+                <input type="number" id="interestRate" class="input-field mb-2" value="7.5" min="0.1" max="36" step="0.1">
+                <input type="range" id="interestRateSlider" class="slider" value="7.5" min="0.1" max="36" step="0.1">
+                <div class="text-sm text-gray-500 mt-1 text-center" id="interestRateDisplay">7.5%</div>
+            </div>
+        </section>
+
+        <section class="mb-10 card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center flex items-center justify-center">
+                <i data-lucide="bar-chart-3" class="icon-placeholder mr-2 text-indigo-600"></i>Estimated APR by Credit Score
+            </h2>
+            <p class="text-sm text-gray-600 mb-4 text-center">These are typical ranges. Your actual APR may vary. Select a score range to see a suggested APR.</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Credit Score Range</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Description</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Typical New Car APR</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Typical Used Car APR</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Apply Est. APR</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="aprTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mb-10">
+             <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center flex items-center justify-center">
+                <i data-lucide="file-text" class="icon-placeholder mr-2 text-cyan-600"></i>Loan Summary & Estimated Payments
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="card text-center">
+                    <div class="flex justify-center mb-3">
+                        <i data-lucide="landmark" class="w-12 h-12 text-indigo-600"></i>
+                    </div>
+                    <p id="amountToFinance" class="info-value text-indigo-600">$20,000</p>
+                    <p class="info-label">Amount to Finance</p>
+                </div>
+                <div class="card text-center">
+                    <div class="flex justify-center mb-3">
+                        <i data-lucide="wallet" class="w-12 h-12 text-emerald-600"></i>
+                    </div>
+                    <p id="totalInterest" class="info-value text-emerald-600">$0</p> <p class="info-label">Total Interest (for selected term)</p>
+                </div>
+            </div>
+
+            <div class="mb-6 flex justify-center border-b border-gray-300">
+                <button class="tab-button active" data-term="36">36 Months (3 Years)</button>
+                <button class="tab-button" data-term="48">48 Months (4 Years)</button>
+                <button class="tab-button" data-term="60">60 Months (5 Years)</button>
+                <button class="tab-button" data-term="72">72 Months (6 Years)</button>
+            </div>
+            
+            <div id="paymentResults" class="card">
+                <div class="text-center">
+                    <p class="text-gray-700 text-lg">Estimated Monthly Payment:</p>
+                    <p id="monthlyPayment" class="text-4xl font-bold text-blue-600 my-2">$0.00</p>
+                    <p class="text-sm text-gray-500">For a <span id="selectedTermDisplay">36</span>-month term.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <p class="text-sm text-gray-600 mb-2 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="icon-placeholder mr-1 text-orange-500"></i>
+                <strong>Disclaimer:</strong> These calculations are estimates for illustrative purposes only.
+            </p>
+            <p class="text-sm text-gray-500">
+                Actual loan terms, interest rates, and monthly payments will depend on your individual credit profile, the lender's policies, the specific vehicle, and current market conditions.
+            </p>
+        </footer>
+    </div>
+
+    <div id="warningModal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="modal-title">Input Warning</h3>
+            <p id="modalMessage" class="modal-body">The down payment cannot exceed the vehicle price.</p>
+            <div class="text-right">
+                <button id="modalCloseButton" class="modal-button">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const vehiclePriceInput = document.getElementById('vehiclePrice');
+        const vehiclePriceSlider = document.getElementById('vehiclePriceSlider');
+        const vehiclePriceDisplay = document.getElementById('vehiclePriceDisplay');
+
+        const downPaymentInput = document.getElementById('downPayment');
+        const downPaymentSlider = document.getElementById('downPaymentSlider');
+        const downPaymentDisplay = document.getElementById('downPaymentDisplay');
+        
+        const interestRateInput = document.getElementById('interestRate');
+        const interestRateSlider = document.getElementById('interestRateSlider');
+        const interestRateDisplay = document.getElementById('interestRateDisplay');
+
+        const amountToFinanceDisplay = document.getElementById('amountToFinance');
+        const totalInterestDisplay = document.getElementById('totalInterest');
+        const monthlyPaymentDisplay = document.getElementById('monthlyPayment');
+        const selectedTermDisplay = document.getElementById('selectedTermDisplay');
+        const aprTableBody = document.getElementById('aprTableBody');
+        const tabButtons = document.querySelectorAll('.tab-button');
+
+        const warningModal = document.getElementById('warningModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+
+        let currentLoanTerm = 36; // Default loan term in months
+
+        // --- APR Data ---
+        const aprData = [
+            { score: "781-850", description: "Excellent/Superprime", newCarAPR: {min: 5.07, max:7.5}, usedCarAPR: {min:6.8, max:10.0}, suggested: 6.0 },
+            { score: "661-780", description: "Good/Prime", newCarAPR: {min:6.5, max:9.5}, usedCarAPR: {min:8.5, max:13.0}, suggested: 8.0 },
+            { score: "601-660", description: "Fair/Nonprime", newCarAPR: {min:8.8, max:13.0}, usedCarAPR: {min:12.0, max:18.0}, suggested: 12.5 },
+            { score: "501-600", description: "Poor/Subprime", newCarAPR: {min:11.5, max:18.0}, usedCarAPR: {min:17.5, max:22.0}, suggested: 17.8 },
+            { score: "300-500", description: "Bad/Deep Subprime", newCarAPR: {min:14.0, max:22.0}, usedCarAPR: {min:20.0, max:30.0}, suggested: 21.0 }
+        ];
+
+        // --- Utility Functions ---
+        function formatCurrency(value) {
+            return '$' + parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatPercent(value) {
+            return parseFloat(value).toFixed(1) + '%';
+        }
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            warningModal.classList.add('active');
+        }
+
+        function hideModal() {
+            warningModal.classList.remove('active');
+        }
+
+        // --- Event Listeners for Inputs and Sliders ---
+        function setupInputSync(inputEl, sliderEl, displayEl, formatter, isCurrency = true, maxRelativeInput = null) {
+            inputEl.addEventListener('input', () => {
+                let value = parseFloat(inputEl.value);
+                const maxVal = parseFloat(sliderEl.max);
+                const minVal = parseFloat(sliderEl.min);
+
+                if (isNaN(value)) value = minVal;
+                if (value > maxVal) value = maxVal;
+                if (value < minVal) value = minVal;
+                
+                // Special handling for down payment relative to vehicle price
+                if (maxRelativeInput) {
+                    const relativeMax = parseFloat(maxRelativeInput.value);
+                    if (value > relativeMax) {
+                        value = relativeMax;
+                        showModal("Input Warning", `The ${inputEl.id.includes('down') ? 'down payment' : 'value'} cannot exceed the ${maxRelativeInput.id.includes('vehicle') ? 'vehicle price' : 'maximum'}.`);
+                    }
+                }
+                
+                inputEl.value = value; // Update input field with sanitized value
+                sliderEl.value = value;
+                displayEl.textContent = formatter(value);
+                calculateLoan();
+            });
+
+            sliderEl.addEventListener('input', () => {
+                let value = parseFloat(sliderEl.value);
+                 // Special handling for down payment relative to vehicle price
+                if (maxRelativeInput) {
+                    const relativeMax = parseFloat(maxRelativeInput.value);
+                     if (value > relativeMax) {
+                        value = relativeMax;
+                        sliderEl.value = value; // Correct slider position
+                        // Optionally show modal or just cap it
+                    }
+                }
+                inputEl.value = value;
+                displayEl.textContent = formatter(value);
+                calculateLoan();
+            });
+        }
+        
+        setupInputSync(vehiclePriceInput, vehiclePriceSlider, vehiclePriceDisplay, formatCurrency);
+        setupInputSync(downPaymentInput, downPaymentSlider, downPaymentDisplay, formatCurrency, true, vehiclePriceInput); // downPayment max is relative to vehiclePrice
+        setupInputSync(interestRateInput, interestRateSlider, interestRateDisplay, formatPercent, false);
+
+        modalCloseButton.addEventListener('click', hideModal);
+        warningModal.addEventListener('click', (e) => {
+            if (e.target === warningModal) { // Close if backdrop is clicked
+                hideModal();
+            }
+        });
+
+
+        // --- Populate APR Table ---
+        function populateAprTable() {
+            aprTableBody.innerHTML = ''; // Clear existing rows
+            aprData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${data.score}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${data.description}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${formatPercent(data.newCarAPR.min)} - ${formatPercent(data.newCarAPR.max)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${formatPercent(data.usedCarAPR.min)} - ${formatPercent(data.usedCarAPR.max)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                        <button class="text-blue-600 hover:text-blue-800 font-medium apply-apr-button" data-apr="${data.suggested}">Apply ${formatPercent(data.suggested)}</button>
+                    </td>
+                `;
+                aprTableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.apply-apr-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const apr = parseFloat(this.dataset.apr);
+                    interestRateInput.value = apr;
+                    interestRateSlider.value = apr;
+                    interestRateDisplay.textContent = formatPercent(apr);
+                    calculateLoan();
+                     // Scroll to the interest rate input for better UX
+                    interestRateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+        }
+
+        // --- Tab Functionality ---
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentLoanTerm = parseInt(this.dataset.term);
+                selectedTermDisplay.textContent = this.dataset.term;
+                calculateLoan();
+            });
+        });
+
+        // --- Loan Calculation ---
+        function calculateLoan() {
+            const price = parseFloat(vehiclePriceInput.value) || 0;
+            let downPayment = parseFloat(downPaymentInput.value) || 0;
+            const annualInterestRate = parseFloat(interestRateInput.value) || 0;
+
+            // Validate down payment against vehicle price
+            if (downPayment > price) {
+                downPayment = price;
+                downPaymentInput.value = price;
+                downPaymentSlider.value = price;
+                downPaymentDisplay.textContent = formatCurrency(price);
+                showModal("Input Adjustment", "Down payment was adjusted as it cannot exceed the vehicle price.");
+            }
+             // Update slider max for down payment based on vehicle price
+            downPaymentSlider.max = price;
+
+
+            const principal = price - downPayment;
+            amountToFinanceDisplay.textContent = formatCurrency(principal);
+
+            if (principal <= 0 || annualInterestRate <= 0 || currentLoanTerm <=0) {
+                monthlyPaymentDisplay.textContent = formatCurrency(0);
+                totalInterestDisplay.textContent = formatCurrency(0);
+                if (principal < 0) {
+                     amountToFinanceDisplay.textContent = formatCurrency(0); // Should not be negative
+                }
+                return;
+            }
+
+            const monthlyInterestRate = annualInterestRate / 100 / 12;
+            const numberOfPayments = currentLoanTerm;
+
+            let monthlyPayment;
+            if (monthlyInterestRate === 0) { // Handle 0% interest rate
+                monthlyPayment = principal / numberOfPayments;
+            } else {
+                 monthlyPayment = principal * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfPayments)) / (Math.pow(1 + monthlyInterestRate, numberOfPayments) - 1);
+            }
+           
+            const totalPaid = monthlyPayment * numberOfPayments;
+            const totalInterest = totalPaid - principal;
+
+            monthlyPaymentDisplay.textContent = formatCurrency(monthlyPayment.toFixed(0)); // Rounded to nearest dollar
+            totalInterestDisplay.textContent = formatCurrency(totalInterest.toFixed(0)); // Rounded
+        }
+
+        // --- Initial Setup ---
+        function initialize() {
+            lucide.createIcons();
+            populateAprTable();
+            // Set initial display values from inputs
+            vehiclePriceDisplay.textContent = formatCurrency(vehiclePriceInput.value);
+            downPaymentDisplay.textContent = formatCurrency(downPaymentInput.value);
+            interestRateDisplay.textContent = formatPercent(interestRateInput.value);
+            selectedTermDisplay.textContent = currentLoanTerm; // Set initial term display
+            calculateLoan();
+        }
+
+        // Run initialization when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
